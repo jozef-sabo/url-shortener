@@ -54,6 +54,7 @@ def create():
 
 
 @app.route("/<redirect_url>/", methods=["GET"])
+@app.route("/<redirect_url>", methods=["GET"])
 def redirect(redirect_url: str):
     resp = check_requested_link(redirect_url, app.config["ALLOWED_ALPHABET"])
     if resp is not None:
