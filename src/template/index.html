@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shortener</title>
+</head>
+<body>
+<h1>Address shortener</h1>
+<form action="#" method="POST" id="shortener_form">
+    <div>
+        <label for="destination" >Destination address</label>
+        <div>
+            <input id="destination" name="destination" type="text" autocomplete="off" required>
+        </div>
+    </div>
+        <fieldset >
+            <legend>Redirect Code</legend>
+            <div>
+                <div>
+                    <input id="temp" name="redirect" type="radio" value="302" checked="checked">
+                    <label for="temp">302</label>
+                </div>
+                <div>
+                    <input id="permanent" name="redirect" type="radio" value="301">
+                    <label for="permanent">301</label>
+                </div>
+            </div>
+        </fieldset>
+        <div>
+            <button type="submit">Request address</button>
+        </div>
+</form>
+<h3>URL is: <a id="link_text"></a></h3>
+<p id="err" style="color: red" hidden="hidden"></p>
+
+
+</body>
+<script src="./static/form.js"></script>
+</html>
