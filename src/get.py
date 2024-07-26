@@ -22,8 +22,10 @@ def get_from_db(cursor, values: dict) -> tuple:
 def get_request(cursor, link: str) -> Union[flask.Response, tuple]:
     sql_values = {"link": link}
 
-    url, redirect = get_from_db(cursor, sql_values)
-    if url is None or redirect is None:
+    result = get_from_db(cursor, sql_values)
+    if result is None or not result:
         return flask.render_template("404.html"), 404
+
+    url, redirect = result
 
     return flask.redirect(url, code=redirect)
