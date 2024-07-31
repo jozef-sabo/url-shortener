@@ -1,9 +1,15 @@
+from dataclasses import dataclass
 from typing import Optional, Union
 import flask
 
 
 def check_requested_link(link: str, alphabet: set) -> Optional[tuple]:
     if not isinstance(link, str) or set(link) - alphabet != set():
+@dataclass
+class GetContext:
+    alphabet: set
+
+
         return flask.render_template("404.html"), 404
 
     return None

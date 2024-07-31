@@ -8,6 +8,16 @@ from dataclasses import dataclass
 
 
 @dataclass
+class InsertContext:
+    link_alphabet: set
+    link_alphabet_l: list
+    allowed_alphabet: set
+    link_length: int
+    destination_length: int
+    tries: int
+
+
+@dataclass
 class CreateValues:
     protocol: str
     destination: ParseResult
