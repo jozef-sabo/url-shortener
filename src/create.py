@@ -26,13 +26,13 @@ class CreateValues:
     admin: Optional[str]
     response: Optional[flask.Response] = None
 
-    def __init__(self, body: dict, link_alphabet: set):
+    def __init__(self, body: dict, ctx: InsertContext):
         destination = body.get("destination", None)  # redirection url
         status_code = body.get("status_code", 301)  # status code with which redirect
         requested_link = body.get("requested_link", None)  # own link
         admin = body.get("admin", None)  # password for own links
 
-        resp = check_destination(destination)
+        resp = check_destination(destination, ctx.destination_length)
         if resp is not None:
             self.response = resp
             return
@@ -43,7 +43,7 @@ class CreateValues:
             return
 
         if requested_link is not None:
-            resp = check_requested_link(admin, requested_link, link_alphabet)
+            resp = check_requested_link(admin, requested_link, ctx.allowed_alphabet)
             if resp is not None:
                 self.response = resp
                 return
@@ -69,7 +69,7 @@ def check_status_code(input_value: Any) -> Optional[flask.Response]:
     return None
 
 
-def check_destination(input_value: Any) -> Optional[flask.Response]:
+def check_destination(input_value: Any, destination_length: int) -> Optional[flask.Response]:
     if not isinstance(input_value, str):
         return json_response({"error": "Destination address must of a text type"}, 400)
 
@@ -80,20 +80,20 @@ def check_destination(input_value: Any) -> Optional[flask.Response]:
     if not dest_parsed.netloc:
         return json_response({"error": "Destination address must have a correct network location"}, 400)
 
-    if len(utils.remove_scheme_url(dest_parsed).geturl()) > 50:
+    if len(utils.remove_scheme_url(dest_parsed).geturl()) > destination_length:
         return json_response({"error": "Destination address must be shorter"}, 400)
 
     return None
 
 
-def check_requested_link(admin: Any, input_value: Any, link_alphabet: set) -> Optional[flask.Response]:
+def check_requested_link(admin: Any, input_value: Any, allowed_alphabet: set) -> Optional[flask.Response]:
     if admin != environ.get("ADMIN_PASS"):
         return json_response({"error": "Unauthorized"}, 401)
 
     if not isinstance(input_value, str):
         return json_response({"error": "Requested link must of a text type"}, 400)
 
-    if (set(input_value) - link_alphabet) != set():
+    if (set(input_value) - allowed_alphabet) != set():
         return json_response({"error": "Requested link contains not allowed characters"}, 400)
 
     return None
@@ -118,9 +118,9 @@ def insert_existing(connection, cursor, values: dict):
     return json_response({"status": "created", "link": inserted_value}, 201)  # SUCCESSFUL
 
 
-def insert_generating(connection, cursor, values: dict, alphabet: list):
-    for TRY_NUMBER in range(10):
-        values["link"] = utils.generate_string(alphabet, 5)
+def insert_generating(connection, cursor, values: dict, ctx: InsertContext):
+    for TRY_NUMBER in range(ctx.tries):
+        values["link"] = utils.generate_string(ctx.link_alphabet_l, ctx.link_length)
         inserted_value = insert_into_db(cursor, values)
 
         if inserted_value is None:
@@ -133,7 +133,7 @@ def insert_generating(connection, cursor, values: dict, alphabet: list):
         {"error": "Cannot generate link, the whole pool is already taken", "type": "not_enough_values"}, 503)
 
 
-def insert_request(connection, cursor, values: CreateValues, ip_address: int, alphabet: list) -> flask.Response:
+def insert_request(connection, cursor, values: CreateValues, ip_address: int, insert_ctx: InsertContext) -> flask.Response:
     sql_values = {
         "link": values.requested_link,
         "protocol": values.protocol,
@@ -143,7 +143,7 @@ def insert_request(connection, cursor, values: CreateValues, ip_address: int, al
     }
 
     if values.requested_link is None:
-        resp = insert_generating(connection, cursor, sql_values, alphabet)
+        resp = insert_generating(connection, cursor, sql_values, insert_ctx)
     else:
         resp = insert_existing(connection, cursor, sql_values)
 
