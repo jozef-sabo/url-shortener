@@ -1,0 +1,16 @@
+[DEFAULT]
+enabled = false
+
+[shortener.utils]
+# set of characters used for creating the shortened link (`alphabet.link`)
+# and checking the custom link (`alphabet.custom_link_extensions`)
+alphabet = { link = [
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
+], custom_link_extensions = ["_", "-"] }
+# default length of the link automatically generated
+link_length = 5
+# number of tries for the shortened link creation
+creation_tries = 10
+# maximum string length of the destination address
+max_destination_length = 50
