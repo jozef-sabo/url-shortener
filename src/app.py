@@ -69,7 +69,6 @@ def redirect(redirect_url: str):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=False, load_dotenv=True)
     conf = load_conf("config.toml")
 
     allowed_alphabet = conf.link_alphabet.union(conf.extensions_alphabet)
@@ -77,3 +76,4 @@ if __name__ == "__main__":
                                              conf.link_length, conf.destination_length, conf.creation_tries)
     app.config["GET_CTX"] = GetContext(allowed_alphabet)
 
+    app.run(host="0.0.0.0", port=8000, debug=False, load_dotenv=True)
