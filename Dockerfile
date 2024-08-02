@@ -9,6 +9,7 @@ RUN wget -c https://www.python.org/ftp/python/3.12.4/Python-3.12.4.tar.xz \
     && make -j4 && make install \
     && cd .. \
     && rm -rf ./Python-3.12.4 \
+    && rm -f ./Python-3.12.4.tar.xz \
     && python3 --version
 
 WORKDIR /url-shortener
