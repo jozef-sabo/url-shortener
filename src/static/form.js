@@ -10,7 +10,7 @@ shortener_form.onsubmit = async (e) => {
     }
     err.hidden = true;
 
-    await fetch('/', {
+    await fetch(window.location.href, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
