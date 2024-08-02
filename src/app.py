@@ -1,5 +1,5 @@
 import ipaddress
-import string
+from typing import Optional
 from flask import Flask, render_template, request
 from os import environ
 from create import CreateValues, insert_request, InsertContext
@@ -39,13 +39,13 @@ def create():
 
     request_ip = ipaddress.ip_address(request.remote_addr)
 
-    connection = connection_pool.getconn()
+    connection = CONNECTION_POOL.getconn()
     cursor = connection.cursor()
 
     response = insert_request(connection, cursor, create_values, int(request_ip), app.config["INSERT_CTX"])
 
     cursor.close()
-    connection_pool.putconn(connection)
+    CONNECTION_POOL.putconn(connection)
 
     return response
 
@@ -57,18 +57,18 @@ def redirect(redirect_url: str):
     if resp is not None:
         return resp
 
-    connection = connection_pool.getconn()
+    connection = CONNECTION_POOL.getconn()
     cursor = connection.cursor()
 
     response = get_request(cursor, redirect_url)
 
     cursor.close()
-    connection_pool.putconn(connection)
+    CONNECTION_POOL.putconn(connection)
 
     return response
 
 
-if __name__ == "__main__":
+def main():
     conf = load_conf("config.toml")
 
     allowed_alphabet = conf.link_alphabet.union(conf.extensions_alphabet)
@@ -76,4 +76,10 @@ if __name__ == "__main__":
                                              conf.link_length, conf.destination_length, conf.creation_tries)
     app.config["GET_CTX"] = GetContext(allowed_alphabet)
 
+
+if __name__ == "__main__":
+    main()
     app.run(host="0.0.0.0", port=8000, debug=False, load_dotenv=True)
+
+
+main()
