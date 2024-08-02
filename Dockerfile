@@ -1,4 +1,4 @@
-FROM alpine:3.16
+FROM alpine:latest
 
 RUN apk add --update --no-cache wget gcc cmake make readline-dev ncurses-dev openssl-dev tk-dev gdbm-dev libc-dev bzip2-dev libffi-dev zlib-dev libpq-dev
 
@@ -16,7 +16,8 @@ WORKDIR /url-shortener
 
 COPY requirements.txt /url-shortener/
 
-RUN python3 -m ensurepip && pip3 install --no-cache --upgrade pip && pip3 install --no-cache -r requirements.txt
+RUN python3 -m ensurepip  \
+    && pip3 install --no-cache -r requirements.txt
 
 EXPOSE 8000
 
