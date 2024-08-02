@@ -24,4 +24,4 @@ USER shortener
 
 COPY src /url-shortener/
 
-CMD [ "uwsgi", "--enable-threads", "--http", "127.0.0.1:8000", "--master", "-p", "4", "-w", "app:app" ]
+CMD [ "uwsgi", "--ini", "uwsgi.ini" ]
