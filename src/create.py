@@ -28,7 +28,7 @@ class CreateValues:
 
     def __init__(self, body: dict, ctx: InsertContext):
         destination = body.get("destination", None)  # redirection url
-        status_code = body.get("status_code", 301)  # status code with which redirect
+        status_code = body.get("redirect", 301)  # status code with which redirect
         requested_link = body.get("requested_link", None)  # own link
         admin = body.get("admin", None)  # password for own links
 
