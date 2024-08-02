@@ -8,13 +8,20 @@ from config import load_conf
 from utils import json_response
 from psycopg2.pool import ThreadedConnectionPool
 from dotenv import load_dotenv
+from uwsgidecorators import postfork
 
 load_dotenv()
-
-connection_pool = ThreadedConnectionPool(1, 5, environ.get("DB_STRING"))
-
+CONNECTION_POOL: Optional[ThreadedConnectionPool] = None
 app = Flask(__name__, template_folder="template", static_folder="static")
 app.config["SECRET_KEY"] = environ.get("SECRET_KEY")
+
+
+# https://stackoverflow.com/questions/44476678/uwsgi-lazy-apps-and-threadpool
+@postfork
+def _make_thread_pool():
+    global CONNECTION_POOL
+    CONNECTION_POOL = ThreadedConnectionPool(1, 10, environ.get("DB_STRING"))
+
 
 # inbuilt function which takes error as parameter
 @app.errorhandler(404)
