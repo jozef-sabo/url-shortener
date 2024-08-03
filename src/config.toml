@@ -16,9 +16,9 @@ creation_tries = 10
 max_destination_length = 50
 
 [network.proxy]
-enabled = true
+enabled = false
 x_for = true
 x_proto = true
-x_host = true
+x_host = false
 x_port = false
 x_prefix = false
