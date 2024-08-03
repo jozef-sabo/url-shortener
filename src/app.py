@@ -5,7 +5,7 @@ from os import environ
 from create import CreateValues, insert_request, InsertContext
 from get import check_requested_link, get_request, GetContext
 from config import load_conf
-from src import proxy
+import proxy
 from utils import json_response
 from psycopg2.pool import ThreadedConnectionPool
 from dotenv import load_dotenv
