@@ -19,6 +19,8 @@ COPY requirements.txt /url-shortener/
 RUN python3 -m ensurepip  \
     && pip3 install --no-cache -r requirements.txt
 
+RUN pip3 install uwsgi
+
 EXPOSE 8000
 
 RUN adduser -D shortener

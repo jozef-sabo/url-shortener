@@ -5,6 +5,7 @@ from os import environ
 from create import CreateValues, insert_request, InsertContext
 from get import check_requested_link, get_request, GetContext
 from config import load_conf
+from src import proxy
 from utils import json_response
 from psycopg2.pool import ThreadedConnectionPool
 from dotenv import load_dotenv
@@ -77,10 +78,12 @@ def redirect(redirect_url: str):
 
 def main():
     conf = load_conf("config.toml")
+    proxy.init(app, conf.Proxy)
 
-    allowed_alphabet = conf.link_alphabet.union(conf.extensions_alphabet)
-    app.config["INSERT_CTX"] = InsertContext(conf.link_alphabet, list(conf.link_alphabet), allowed_alphabet,
-                                             conf.link_length, conf.destination_length, conf.creation_tries)
+    allowed_alphabet = conf.Utils.link_alphabet.union(conf.Utils.extensions_alphabet)
+    app.config["INSERT_CTX"] = InsertContext(conf.Utils.link_alphabet, list(conf.Utils.link_alphabet), allowed_alphabet,
+                                             conf.Utils.link_length, conf.Utils.destination_length,
+                                             conf.Utils.creation_tries)
     app.config["GET_CTX"] = GetContext(allowed_alphabet)
 
 
