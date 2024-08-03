@@ -17,7 +17,7 @@ def check_requested_link(link: str, get_ctx: GetContext) -> Optional[tuple]:
 
 def get_from_db(cursor, values: dict) -> tuple:
     cursor.execute(
-        "SELECT url, redirect FROM get_address(%(link)s);",
+        "SELECT url, redirect FROM get_address(%(link)s::varchar);",
         values
     )
     result = cursor.fetchone()

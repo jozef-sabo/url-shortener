@@ -18,13 +18,13 @@ CREATE TABLE links (
     CONSTRAINT fk_dest_proto FOREIGN KEY (destination_proto) REFERENCES protocol(protocol_id)
 );
 
-CREATE FUNCTION insert_link(redir_link varchar, destination_proto varchar, destination_addr varchar, redirect int, creator_ip integer) RETURNS varchar AS
+CREATE FUNCTION insert_link(redir_link varchar, destination_proto varchar, destination_addr varchar, redirect int, creator_ip bigint) RETURNS varchar AS
     $$
     DECLARE
         ret VARCHAR := null;
     BEGIN
     INSERT INTO links(link, destination_proto, redirect, destination_addr, creator_ip) VALUES
-        (redir_link, (SELECT protocol.protocol_id FROM protocol where protocol.protocol = destination_proto), (redirect - 300), destination_addr, creator_ip)
+        (redir_link, (SELECT protocol.protocol_id FROM protocol where protocol.protocol = destination_proto), (redirect - 300), destination_addr, cast((creator_ip - 2^31) AS integer) )
         ON CONFLICT (link) DO NOTHING RETURNING links.link INTO ret;
     return ret;
     END;

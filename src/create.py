@@ -101,7 +101,9 @@ def check_requested_link(admin: Any, input_value: Any, allowed_alphabet: set) ->
 
 def insert_into_db(cursor, values: dict) -> Optional[str]:
     cursor.execute(
-        "SELECT * from insert_link(%(link)s, %(protocol)s, %(dest)s, %(redirect)s, %(ip_address)s);",
+        "SELECT insert_link "
+        "FROM insert_link(%(link)s::varchar, %(protocol)s::varchar, "
+        "%(dest)s::varchar, %(redirect)s::integer, %(ip_address)s::bigint);",
         values
     )
     result = cursor.fetchone()
