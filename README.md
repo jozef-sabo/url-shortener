@@ -278,7 +278,7 @@ verify_ip = true
 site_key = "<site_key>"
 ```
 If `verify_ip` is set to `true`, url-shortener sends the requesting user's IP address to reCAPTCHA service, and it verifies if the IP address is the same as when pressing the button on website (if `user_ip` on FE is the same as `user_ip` on BE).
-It is important to have set up parsing the IP addresses correctly, especially, when the service is behind [reverse proxy](#reverse-proxy-_feature_).
+It is important to have set up parsing the IP addresses correctly, especially, when the service is behind [reverse proxy](#reverse-proxy-feature).
 On the incorrect setup, reCAPTCHA will return a negative outcome.
 
 Thereupon, edit the `.env` file and add the following line with a retrieved __secret key__
