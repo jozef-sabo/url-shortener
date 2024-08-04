@@ -16,6 +16,11 @@ DEFAULT_PROXY_X_HOST = False
 DEFAULT_PROXY_X_PORT = False
 DEFAULT_PROXY_X_PREFIX = False
 
+DEFAULT_RECAPTCHA_ENABLED = False
+DEFAULT_RECAPTCHA_MIN_SCORE = 0.5
+DEFAULT_RECAPTCHA_VERIFY_IP = True
+DEFAULT_RECAPTCHA_SITE_KEY = ""
+
 
 @dataclass
 class ConfigValues:
@@ -80,12 +85,36 @@ class ConfigValues:
             self.x_port = 1 if x_port else 0
             self.x_prefix = 1 if x_prefix else 0
 
+    @dataclass
+    class Recaptcha:
+        enabled: bool
+        minimal_score: float
+        verify_ip: bool
+        site_key: str
+
+        def __init__(self, config):
+            enabled = config.get("recaptcha", {}).get("enabled", DEFAULT_RECAPTCHA_ENABLED)
+            minimal_score = config.get("recaptcha", {}).get("minimal_score", DEFAULT_RECAPTCHA_MIN_SCORE)
+            verify_ip = config.get("recaptcha", {}).get("verify_ip", DEFAULT_RECAPTCHA_VERIFY_IP)
+            site_key = config.get("recaptcha", {}).get("site_key", DEFAULT_RECAPTCHA_SITE_KEY)
+
+            check_bool(enabled, "recaptcha.enabled")
+            check_float(minimal_score, "recaptcha.minimal_score", 0, 1)
+            check_bool(verify_ip, "recaptcha.verify_ip")
+            check_string(site_key, "recaptcha.site_key")
+
+            self.enabled = enabled
+            self.minimal_score = minimal_score
+            self.verify_ip = verify_ip
+            self.site_key = site_key
+
     def __init__(self, config: dict):
         if not isinstance(config, dict):
             raise TypeError("Config object must be a dictionary (dict)")
 
         self.Utils = self.Utils(config)
         self.Proxy = self.Proxy(config)
+        self.Recaptcha = self.Recaptcha(config)
 
 
 def check_character_list(item: Any, name: str) -> None:
@@ -102,9 +131,22 @@ def check_number(item: Any, name: str, minimum: int) -> None:
         raise ValueError(f"{name} must be a number larger than {minimum - 1}")
 
 
+def check_float(item: Any, name: str, minimum: int, maximum: int) -> None:
+    if not isinstance(item, float):
+        raise ValueError(f"{name} must be a float")
+
+    if item < minimum or item > maximum:
+        raise ValueError(f"{name} be between {minimum} and {maximum}")
+
+
 def check_bool(item: Any, name: str) -> None:
     if not isinstance(item, bool):
         raise ValueError(f"{name} must be a boolean (bool)")
+
+
+def check_string(item: Any, name: str) -> None:
+    if not isinstance(item, str):
+        raise ValueError(f"{name} must be a string (str)")
 
 
 def load_toml_conf(filename: str) -> dict:

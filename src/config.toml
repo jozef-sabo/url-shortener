@@ -24,3 +24,9 @@ x_proto = true
 x_host = false
 x_port = false
 x_prefix = false
+
+[recaptcha]
+enabled = false
+minimal_score = 0.5
+verify_ip = true
+site_key = ""
