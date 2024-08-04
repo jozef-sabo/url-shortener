@@ -2,11 +2,14 @@ let shortener_form = document.getElementById("shortener_form")
 let link_text = document.getElementById("link_text")
 let err = document.getElementById("err")
 
-shortener_form.onsubmit = async (e) => {
+shortener_form.onsubmit = async (e, token) => {
     e.preventDefault();
     let data = {
         destination: document.querySelector("input[name='destination']").value,
         redirect: parseInt(document.querySelector("input[name='redirect']:checked").value),
+    }
+    if (token !== null) {
+        data.recaptcha = token;
     }
     err.hidden = true;
 

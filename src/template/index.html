@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Shortener</title>
+    {% if recaptcha %}
+        <script src="https://www.google.com/recaptcha/api.js"></script>
+    {% endif %}
 </head>
 <body>
 <h1>Address shortener</h1>
@@ -27,13 +30,20 @@
             </div>
         </fieldset>
         <div>
-            <button type="submit">Request address</button>
+            <button {% if recaptcha %} class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="onSubmit" data-action="submit" {% endif %}>Request address</button>
         </div>
 </form>
 <h3>URL is: <a id="link_text" target="_blank"></a></h3>
 <p id="err" style="color: red" hidden="hidden"></p>
 
-
 </body>
 <script src="./static/form.js"></script>
+{% if recaptcha %}
+<script>
+async function onSubmit(token) {
+    console.log(token);
+    await document.getElementById("shortener_form").onsubmit(new SubmitEvent("", {}), token);
+}
+</script>
+{% endif %}
 </html>
