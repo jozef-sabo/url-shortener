@@ -4,8 +4,10 @@ from flask import Flask, render_template, request
 from os import environ
 from create import CreateValues, insert_request, InsertContext
 from get import check_requested_link, get_request, GetContext
+from recaptcha import RecaptchaContext, RecaptchaValues
 from config import load_conf
 import proxy
+import recaptcha
 from utils import json_response
 from psycopg2.pool import ThreadedConnectionPool
 from dotenv import load_dotenv
@@ -28,13 +30,7 @@ except ImportError as _:
 
 app = Flask(__name__, template_folder="template", static_folder="static")
 app.config["SECRET_KEY"] = environ.get("SECRET_KEY")
-
-
-# https://stackoverflow.com/questions/44476678/uwsgi-lazy-apps-and-threadpool
-@postfork
-def _make_thread_pool():
-    global CONNECTION_POOL
-    CONNECTION_POOL = ThreadedConnectionPool(1, 10, environ.get("DB_STRING"))
+app.config["RECAPTCHA_SECRET_KEY"] = environ.get("RECAPTCHA_SECRET_KEY")
 
 
 # inbuilt function which takes error as parameter
@@ -45,7 +41,9 @@ def not_found(e):
 
 @app.route("/", methods=["GET"])
 def index():
-    return render_template("index.html")
+    return render_template(
+        template_name_or_list="index.html",
+        **{"recaptcha": app.config["RECAPTCHA_CTX"].enabled, "recaptcha_site_key": app.config["RECAPTCHA_CTX"].site_key})
 
 
 @app.route("/", methods=["POST"])
@@ -58,7 +56,17 @@ def create():
     if not create_values:
         return create_values.response
 
-    request_ip = ipaddress.ip_address(request.remote_addr)
+    recaptcha_values = RecaptchaValues(body, app.config["RECAPTCHA_CTX"])
+    if not recaptcha_values:
+        return recaptcha_values.response
+
+    request_ip_str = request.remote_addr
+    recaptcha_response = recaptcha.verify(recaptcha_values, app.config["RECAPTCHA_CTX"],
+                                          app.config["RECAPTCHA_SECRET_KEY"], request_ip_str)
+    if recaptcha_response is not None:
+        return recaptcha_response
+
+    request_ip = ipaddress.ip_address(request_ip_str)
 
     connection = CONNECTION_POOL.getconn()
     cursor = connection.cursor()
@@ -98,6 +106,8 @@ def main():
                                              conf.Utils.link_length, conf.Utils.destination_length,
                                              conf.Utils.creation_tries)
     app.config["GET_CTX"] = GetContext(allowed_alphabet)
+    app.config["RECAPTCHA_CTX"] = RecaptchaContext(conf.Recaptcha.enabled, conf.Recaptcha.minimal_score,
+                                                   conf.Recaptcha.verify_ip, conf.Recaptcha.site_key)
 
 
 if __name__ == "__main__":
