@@ -9,10 +9,23 @@ import proxy
 from utils import json_response
 from psycopg2.pool import ThreadedConnectionPool
 from dotenv import load_dotenv
-from uwsgidecorators import postfork
 
 load_dotenv()
+
 CONNECTION_POOL: Optional[ThreadedConnectionPool] = None
+# parameters can be customized for uWSGI and non-uWSGI installation separately
+try:
+    # on non existing import (uWSGI is not running), it fails
+    from uwsgidecorators import postfork
+
+    # https://stackoverflow.com/questions/44476678/uwsgi-lazy-apps-and-threadpool
+    @postfork
+    def _make_thread_pool():
+        global CONNECTION_POOL
+        CONNECTION_POOL = ThreadedConnectionPool(1, 10, environ.get("DB_STRING"))
+except ImportError as _:
+    CONNECTION_POOL = ThreadedConnectionPool(1, 10, environ.get("DB_STRING"))
+
 app = Flask(__name__, template_folder="template", static_folder="static")
 app.config["SECRET_KEY"] = environ.get("SECRET_KEY")
 
