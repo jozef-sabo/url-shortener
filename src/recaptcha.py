@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from typing import Optional, Any
-import requests
-from utils import json_response
+
 import flask
+import requests
+
+from utils import json_response
 
 
 @dataclass

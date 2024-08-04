@@ -1,10 +1,12 @@
+from dataclasses import dataclass
 from os import environ
 from typing import Optional, Any
 from urllib.parse import urlparse, ParseResult
+
 import flask
+
 import utils
 from utils import json_response
-from dataclasses import dataclass
 
 
 @dataclass

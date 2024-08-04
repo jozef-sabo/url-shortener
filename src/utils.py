@@ -1,8 +1,9 @@
 import json
 import random
 from typing import Union
+from urllib.parse import urlparse, ParseResult
+
 import flask
-from urllib.parse import urlparse, ParseResult, ParseResultBytes
 
 
 def json_response(body: Union[dict, str], status_code: int) -> flask.Response:
