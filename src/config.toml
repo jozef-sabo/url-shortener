@@ -26,7 +26,12 @@ x_port = false
 x_prefix = false
 
 [recaptcha]
+# tell the service to serve the page with reCAPTCHA fields
 enabled = false
+# minimal score to be accepted as legitimate user,
+# more on that at https://developers.google.com/recaptcha/docs/v3#interpreting_the_score
 minimal_score = 0.5
+# if true, url-shortener sends the requesting user's IP to reCAPTCHA service
 verify_ip = true
+# site key retrieved by Google
 site_key = ""

@@ -123,6 +123,9 @@ DB_STRING=""
 
 # secret value used to create custom links
 ADMIN_PASS=""
+
+# secret value used with reCAPTCHA feature enabled
+RECAPTCHA_SECRET_KEY=""
 ```
 
 
@@ -235,3 +238,52 @@ x_prefix = false
 ```
 The entries set to `true` were set up in nginx config already.
 To enable more entries, add the corresponding lines to the [nginx configuration file](#nginx-setup).
+
+## Google's reCAPTCHA _(feature)_
+> __disabled__ by default, [recaptcha] section in config.
+
+The implementation is written as the REST API.
+This is useful for machine-to-machine communication, as it does not come with challenging representation and data parsing, but it brings security risks.
+The API calls can be automatized and done by bots in a very high number of requests.
+Such a behavior can easily flood the inbound traffic and fill the disk space by growing database.
+To protect against such actions, we can use [Google's reCAPTHCA](https://developers.google.com/recaptcha/).
+
+> [!WARNING]  
+> Be aware that fees may apply!  
+> It is important to set up reCAPTCHA service correctly. Also, high traffic may occur and increase the usage. Check the pricing page [here](https://cloud.google.com/security/products/recaptcha?hl=sk#pricing).
+
+### Cloud Console setup
+To be able to use reCAPTCHA service, you must register shortener service to Google's Console.
+Register to the service [here](https://developers.google.com/recaptcha/intro) by clicking `Get Started` button and filling out required fields.
+It is important to fill in a correct domain (this will be checked on Google's side) and select `Score based (v3)` option as reCAPTCHA type (v2 will not work).
+
+Google Cloud then returns two keys, each of a different type:
+
+ - __site key__: public, put to the website
+ - __private key__: private, accessible only on backend, should not be published
+
+### Local setup
+With two keys retrieved from [Google Console](#cloud-console-setup), the configs need to be filled in.
+
+Edit the `config.toml` and add retrieved __site key__
+```toml
+# tell the service to serve the page with reCAPTCHA fields
+enabled = true
+# minimal score to be accepted as legitimate user, 
+# more on that at https://developers.google.com/recaptcha/docs/v3#interpreting_the_score
+minimal_score = 0.5
+# if true, url-shortener sends the requesting user's IP to reCAPTCHA service
+verify_ip = true
+# site key retrieved by Google
+site_key = "<site_key>"
+```
+If `verify_ip` is set to `true`, url-shortener sends the requesting user's IP address to reCAPTCHA service, and it verifies if the IP address is the same as when pressing the button on website (if `user_ip` on FE is the same as `user_ip` on BE).
+It is important to have set up parsing the IP addresses correctly, especially, when the service is behind [reverse proxy](#reverse-proxy-_feature_).
+On the incorrect setup, reCAPTCHA will return a negative outcome.
+
+Thereupon, edit the `.env` file and add the following line with a retrieved __secret key__
+```.env
+RECAPTCHA_SECRET_KEY="<secret_key>"
+```
+
+After that, when accessing the index page of the site, small reCAPTCHA in the right down corner should appear.
