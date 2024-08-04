@@ -26,6 +26,11 @@ try:
     # https://stackoverflow.com/questions/44476678/uwsgi-lazy-apps-and-threadpool
     @postfork
     def _make_thread_pool():
+        """
+        If uWSGI server is available, ensures that database connection will be opened
+        after the process forking.
+        This is needed due to the parallelism and shared variable memory
+        """
         global CONNECTION_POOL
         CONNECTION_POOL = ThreadedConnectionPool(1, 10, environ.get("DB_STRING"))
 except ImportError as _:
@@ -36,14 +41,24 @@ app.config["SECRET_KEY"] = environ.get("SECRET_KEY")
 app.config["RECAPTCHA_SECRET_KEY"] = environ.get("RECAPTCHA_SECRET_KEY")
 
 
-# inbuilt function which takes error as parameter
 @app.errorhandler(404)
 def not_found(e):
+    """
+    Returns not-found flask response
+
+    Inbuilt function which takes error as parameter
+    :param e: Error
+    :return: flask.Response
+    """
     return render_template("404.html"), 404
 
 
 @app.route("/", methods=["GET"])
 def index():
+    """
+    Returns rendered index template
+    :return: flask.Response
+    """
     return render_template(
         template_name_or_list="index.html",
         **{"recaptcha": app.config["RECAPTCHA_CTX"].enabled, "recaptcha_site_key": app.config["RECAPTCHA_CTX"].site_key})
@@ -51,6 +66,10 @@ def index():
 
 @app.route("/", methods=["POST"])
 def create():
+    """
+    Route for link creation
+    :return: flask.Response
+    """
     if not request.is_json:
         return json_response({"error": "Request is not in the correct format"}, 400)
 
@@ -85,6 +104,11 @@ def create():
 @app.route("/<redirect_url>/", methods=["GET"])
 @app.route("/<redirect_url>", methods=["GET"])
 def redirect(redirect_url: str):
+    """
+    Route for link redirection
+    :param redirect_url: requested URL
+    :return: flask.Response
+    """
     resp = check_requested_link(redirect_url, app.config["GET_CTX"])
     if resp is not None:
         return resp
@@ -101,6 +125,9 @@ def redirect(redirect_url: str):
 
 
 def main():
+    """
+    The main function, ensures that the application is configured correctly
+    """
     conf = load_conf("config.toml")
     proxy.init(app, conf.Proxy)
 

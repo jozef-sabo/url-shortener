@@ -24,8 +24,14 @@ DEFAULT_RECAPTCHA_SITE_KEY = ""
 
 @dataclass
 class ConfigValues:
+    """
+    Data class containing input values received from user in the request
+    """
     @dataclass
     class Utils:
+        """
+        Data class representing a utils section in the configuration
+        """
         link_alphabet: set[str]
         extensions_alphabet: set[str]
         link_length: int
@@ -56,6 +62,9 @@ class ConfigValues:
 
     @dataclass
     class Proxy:
+        """
+        Data class representing a proxy section in the configuration
+        """
         enabled: bool
         x_for: int
         x_proto: int
@@ -87,6 +96,9 @@ class ConfigValues:
 
     @dataclass
     class Recaptcha:
+        """
+        Data class representing a recaptcha section in the configuration
+        """
         enabled: bool
         minimal_score: float
         verify_ip: bool
@@ -118,6 +130,15 @@ class ConfigValues:
 
 
 def check_character_list(item: Any, name: str) -> None:
+    """
+    Checks if the inputted value is exactly of a character list type
+
+    :raises TypeError: on incorrect (non-character) type, even string is not acceptable
+    :raises ValueError: if the item is not a list or is empty list
+    :param item: Any value received from user
+    :param name: Name, with which is the value recognisable in the logs
+    :return: None
+    """
     if not isinstance(item, list) or len(item) == 0:
         raise ValueError(f"{name} must be a list and cannot be empty")
 
@@ -127,29 +148,74 @@ def check_character_list(item: Any, name: str) -> None:
 
 
 def check_number(item: Any, name: str, minimum: int) -> None:
+    """
+    Checks if the inputted value is exactly of a float type
+    and bigger than given border
+
+    :raises ValueError: if number is not of an integer type or bigger than border
+    :param item: Any value received from user
+    :param name: Name, with which is the value recognisable in the logs
+    :param minimum: minimal accepted value
+    :return: None
+    """
     if not isinstance(item, int) or item < minimum:
         raise ValueError(f"{name} must be a number larger than {minimum - 1}")
 
 
 def check_float(item: Any, name: str, minimum: int, maximum: int) -> None:
+    """
+    Checks if the inputted value is exactly of a float type
+    and between given borders
+
+    :raises TypeError: on incorrect (non-float) type
+    :raises ValueError: if number is not between borders
+    :param item: Any value received from user
+    :param name: Name, with which is the value recognisable in the logs
+    :param minimum: minimal accepted value
+    :param maximum: maximal accepted value
+    :return: None
+    """
     if not isinstance(item, float):
-        raise ValueError(f"{name} must be a float")
+        raise TypeError(f"{name} must be a float")
 
     if item < minimum or item > maximum:
         raise ValueError(f"{name} be between {minimum} and {maximum}")
 
 
 def check_bool(item: Any, name: str) -> None:
+    """
+    Checks if the inputted value is exactly of a boolean type
+
+    :raises TypeError: on incorrect (non-bool) type
+    :param item: Any value received from user
+    :param name: Name, with which is the value recognisable in the logs
+    :return: None
+    """
     if not isinstance(item, bool):
-        raise ValueError(f"{name} must be a boolean (bool)")
+        raise TypeError(f"{name} must be a boolean (bool)")
 
 
 def check_string(item: Any, name: str) -> None:
+    """
+    Checks if the inputted value is exactly of a string type
+
+    :raises TypeError: on incorrect (non-string) type
+    :param item: Any value received from user
+    :param name: Name, with which is the value recognisable in the logs
+    :return: None
+    """
     if not isinstance(item, str):
-        raise ValueError(f"{name} must be a string (str)")
+        raise TypeError(f"{name} must be a string (str)")
 
 
 def load_toml_conf(filename: str) -> dict:
+    """
+    Loads the file represented by filename as byte array
+
+    :exception OSError: same as open() function
+    :param filename: name of the file to be read
+    :return: byte array containing the contents of the file
+    """
     with open(filename, "rb") as conf_file:
         conf = tomllib.load(conf_file)
 
@@ -157,6 +223,15 @@ def load_toml_conf(filename: str) -> dict:
 
 
 def load_conf(filename: str) -> ConfigValues:
+    """
+    Loads the config given by the filename and parses it into ConfigValues object
+
+    :exception ValueError: on the incorrect values
+    :exception TypeError: on the type mismatch
+    :exception OSError: same as open() function
+    :param filename: name of the file containing the config
+    :return: ConfigValues object containing the config contents
+    """
     toml_conf = load_toml_conf(filename)
     conf_obj = ConfigValues(toml_conf)
 
@@ -165,3 +240,4 @@ def load_conf(filename: str) -> ConfigValues:
 
 Utils = ConfigValues.Utils
 Proxy = ConfigValues.Proxy
+Recaptcha = ConfigValues.Recaptcha
