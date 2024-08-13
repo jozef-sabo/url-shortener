@@ -1,0 +1,64 @@
+.hidden-radio {
+    display: none;
+}
+
+.hidden-radio:checked ~ .radio-group {
+    max-height: 100px; /* adjust this to match the content's height */
+    padding: 1rem 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+}
+
+.radio-group {
+    max-height: 0;
+    padding: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+}
+
+.animated {
+    opacity: 0;
+    transform: translateY(-20px);
+    max-height: 0; /* Collapsed state */
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out, max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+    padding: 0; /* No padding when hidden */
+    overflow: hidden; /* Hide overflow when collapsed */
+}
+
+.animated.show {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 100px; /* Set this to a value that accommodates your content */
+    padding: 0.5rem; /* Add padding when showing */
+}
+
+.error {
+    color: red;
+    font-size: 0.875rem;
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    opacity: 0; /* Start invisible */
+    transform: translateY(-10px); /* Start slightly above */
+    max-height: 0; /* Hidden by default */
+    overflow: hidden; /* Hide overflow */
+}
+
+.error.show {
+    opacity: 1; /* Fully visible */
+    transform: translateY(0); /* Reset position */
+    max-height: 50px; /* Adjust according to your text height */
+    margin-bottom: 0.5rem; /* Add a small margin below the error message */
+}
+
+/* Notification styles */
+#notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #4caf50; /* Green background */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    z-index: 1000; /* Ensure it's above other content */
+}

@@ -2,48 +2,74 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Shortener</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     {% if recaptcha %}
         <script src="https://www.google.com/recaptcha/api.js"></script>
     {% endif %}
-</head>
-<body>
-<h1>Address shortener</h1>
-<form action="#" method="POST" id="shortener_form">
-    <div>
-        <label for="destination" >Destination address</label>
-        <div>
-            <input id="destination" name="destination" type="text" autocomplete="off" required>
-        </div>
-    </div>
-        <fieldset >
-            <legend>Redirect Code</legend>
-            <div>
-                <div>
-                    <input id="temp" name="redirect" type="radio" value="302" checked="checked">
-                    <label for="temp">302</label>
-                </div>
-                <div>
-                    <input id="permanent" name="redirect" type="radio" value="301">
-                    <label for="permanent">301</label>
-                </div>
-            </div>
-        </fieldset>
-        <div>
-            <button {% if recaptcha %} class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-callback="onSubmit" data-action="submit" {% endif %}>Request address</button>
-        </div>
-</form>
-<h3>URL is: <a id="link_text" target="_blank"></a></h3>
-<p id="err" style="color: red" hidden="hidden"></p>
 
-</body>
+   <link rel="stylesheet" href="./static/form.css"></link>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen p-4">
+<div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md mx-auto">
+    <h1 class="text-2xl font-bold mb-6 text-center">URL Shortener</h1>
+
+    <form action="#" method="POST" id="url-form">
+        <!-- Destination Address Input -->
+        <div class="mb-2">
+            <label for="destination" class="block text-sm font-medium text-gray-700">Destination Address</label>
+            <input type="text" id="destination" name="destination" class="mt-1 p-2 bg-gray-100 border rounded w-full"
+                   placeholder="Enter your URL here" autocomplete="off" required>
+            <span id="error-message"
+                  class="error">Invalid URL format. Please include http(s) and valid characters.</span>
+        </div>
+
+        <!-- Hidden Radio Button Trigger -->
+        <input type="checkbox" id="show-radios" class="hidden-radio">
+        <label for="show-radios" class="cursor-pointer text-blue-500 hover:underline inline-block">Show Redirect
+            Types</label>
+
+        <!-- Hidden Radio Buttons with Animation -->
+        <div class="radio-group mb-4">
+            <label class="block mb-2">
+                <input type="radio" name="redirect" value="302" class="mr-2" checked="checked"> 302 (Temporary)
+            </label>
+            <label class="block">
+                <input type="radio" name="redirect" value="301" class="mr-2"> 301 (Permanent)
+            </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="bg-blue-500 text-white p-2 rounded w-full hover:bg-blue-600{% if recaptcha %} g-recaptcha{% endif %}" {% if recaptcha %} data-sitekey="{{ recaptcha_site_key }}" data-callback="onSubmit" data-action="submit" {% endif %} disabled>Shorten URL
+        </button>
+    </form>
+
+    <!-- Shortened URL Label -->
+    <div id="shortened-url-container" class="mt-4 animated hidden">
+        <label class="block text-sm font-medium text-gray-700">Shortened URL:</label>
+        <div class="flex items-center">
+            <a id="shortened-url" class="mt-1 block text-blue-500" target="_blank"></a>
+            <button id="copy-button" class="ml-2 text-blue-500 hover:underline flex items-center" style="text-decoration: none">
+                <span class="material-icons">content_copy</span>
+            </button>
+        </div>
+        <button id="remove-url-button" class="mt-2 text-red-500 hover:underline">Remove</button>
+    </div>
+
+    <!-- Notification Bar -->
+    <div id="notification">Copy successful!</div>
+</div>
+
 <script src="./static/form.js"></script>
 {% if recaptcha %}
 <script>
 async function onSubmit(token) {
     console.log(token);
-    await document.getElementById("shortener_form").onsubmit(new SubmitEvent("", {}), token);
+    await document.getElementById("url-form").onsubmit(new SubmitEvent("", {}), token);
 }
 </script>
 {% endif %}
+</body>
 </html>
