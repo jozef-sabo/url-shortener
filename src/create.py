@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from os import environ
 from typing import Optional, Any
@@ -76,11 +77,14 @@ def check_status_code(input_value: Any) -> Optional[flask.Response]:
         otherwise flask.Response with detailed information about incorrect value
     """
     if not isinstance(input_value, int):
+        logging.debug("Status code is not a of a int type, it is %s", type(input_value))
         return json_response({"error": "Status code must be of a numeric type"}, 400)
 
     if input_value > 399 or input_value < 300:
+        logging.debug("Status code is not in a range, it is %s", input_value)
         return json_response({"error": "Status code must be of a redirection type"}, 400)
 
+    logging.debug("Status code OK")
     return None
 
 
@@ -94,19 +98,25 @@ def check_destination(input_value: Any, destination_length: int) \
         otherwise flask.Response with detailed information about incorrect value
     """
     if not isinstance(input_value, str):
+        logging.debug("Destination is not a of a str type, it is %s", type(input_value))
         return json_response({"error": "Destination address must of a text type"}, 400)
 
     dest_parsed = urlparse(input_value, allow_fragments=True)
     if dest_parsed.scheme not in ("http", "https"):
+        logging.debug("Scheme is invalid, scheme %s", dest_parsed.scheme)
         return json_response({"error": "Destination address must have a correct protocol"}, 400)
 
     if not dest_parsed.netloc:
+        logging.debug("Netloc is invalid", dest_parsed.netloc)
         return json_response(
             {"error": "Destination address must have a correct network location"}, 400)
 
     if len(utils.remove_scheme_url(dest_parsed).geturl()) > destination_length:
+        logging.debug("Destination is longer (%s) than allowed (%s)",
+                      len(utils.remove_scheme_url(dest_parsed).geturl()), destination_length)
         return json_response({"error": "Destination address must be shorter"}, 400)
 
+    logging.debug("Destination OK")
     return None
 
 
@@ -122,15 +132,19 @@ def check_requested_link(admin: Any, input_value: Any, allowed_alphabet: set) \
         otherwise flask.Response with detailed information about incorrect value
     """
     if admin != environ.get("ADMIN_PASS"):
+        logging.debug("Admin pass is incorrect", type(input_value))
         return json_response({"error": "Unauthorized"}, 401)
 
     if not isinstance(input_value, str):
+        logging.debug("Requested link is not a of a str type, it is %s", type(input_value))
         return json_response({"error": "Requested link must of a text type"}, 400)
 
     if (set(input_value) - allowed_alphabet) != set():
+        logging.debug("Requested link contains not allowed characters, diff=%s", (set(input_value) - allowed_alphabet))
         return json_response(
             {"error": "Requested link contains not allowed characters"}, 400)
 
+    logging.debug("Requested link OK")
     return None
 
 
@@ -142,12 +156,14 @@ def insert_into_db(cursor, values: dict) -> Optional[str]:
     :param values: dictionary containing values which will be parsed to a database query
     :return: string containing the result or None
     """
+    logging.debug("Inserting data into database")
     cursor.execute(
         "SELECT insert_link "
         "FROM insert_link(%(link)s::varchar, %(protocol)s::varchar, "
         "%(dest)s::varchar, %(redirect)s::integer, %(ip_address)s::bigint);",
         values
     )
+    logging.debug("Fetching the response")
     result = cursor.fetchone()
 
     return result[0]
@@ -164,11 +180,14 @@ def insert_existing(connection, cursor, values: dict):
     :param values: dictionary with preprocessed information about the entry
     :return: flask.Response containing the response for the user
     """
+    logging.debug("Inserting the link defined by user, link=%s", values.get("link"))
     inserted_value = insert_into_db(cursor, values)
     if inserted_value is None:
+        logging.debug("Already in the database")
         return json_response(
             {"error": "Requested link was already taken", "type": "exists"}, 409)
 
+    logging.debug("Commiting the changes to the database")
     connection.commit()
     # SUCCESSFUL
     return json_response({"status": "created", "link": inserted_value}, 201)
@@ -188,17 +207,21 @@ def insert_generating(connection, cursor, values: dict, ctx: InsertContext):
     :param ctx: InsertContext object with information about local session
     :return: flask.Response containing the response for the user
     """
+    logging.debug("Inserting the link using generation")
     for try_number in range(ctx.tries):
         values["link"] = utils.generate_string(ctx.link_alphabet_l, ctx.link_length)
+        logging.debug("Try %s/%s, generated link=%s", try_number + 1, ctx.tries, values["link"])
         inserted_value = insert_into_db(cursor, values)
 
         if inserted_value is None:
             continue
 
+        logging.debug("Commiting the changes to the database")
         connection.commit()
         # SUCCESSFUL
         return json_response({"status": "created", "link": inserted_value}, 201)
 
+    logging.error("Link generation unsuccessful after %s tries", ctx.tries)
     return json_response(
         {
             "error": "Cannot generate link, the whole pool is already taken",

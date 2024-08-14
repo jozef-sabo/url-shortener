@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import Optional, Any
 
@@ -53,9 +54,11 @@ def check_token(input_value: Any) -> Optional[flask.Response]:
         otherwise flask.Response with detailed information about incorrect value
     """
     if input_value is None:
+        logging.debug("Recaptcha token not provided")
         return json_response({"error": "Recaptcha token was not provided"}, 401)
 
     if not isinstance(input_value, str):
+        logging.debug("Recaptcha token is not a of a str type, it is %s", type(input_value))
         return json_response({"error": "Recaptcha token must be of a text type"}, 400)
 
     return None
@@ -68,9 +71,11 @@ def unsuccessful_verify(error_codes: list) -> flask.Response:
     :return: flask.Response with the meaningful information for the user
     """
     if "timeout-or-duplicate" in error_codes:
+        logging.debug("Recpatcha unsuccessful, timeout or duplicate")
         return json_response(
             {"error": "Recaptcha challenge failed, duplicate or timed out request"}, 400)
 
+    logging.debug("Recpatcha unsuccessful, error codes=%s", error_codes)
     return json_response({"error": "Recaptcha challenge failed, check the token parsed"}, 400)
 
 
@@ -89,6 +94,7 @@ def verify(user_input: RecaptchaValues, ctx: RecaptchaContext, secret_key: str, 
     :return: None if the values and behavior were verified successfully,
         otherwise flask.Response with detailed information about error
     """
+    logging.info("Verifying recaptcha, state %s", ctx.enabled)
     # FEATURE SWITCH
     if not ctx.enabled:
         return None
@@ -101,14 +107,17 @@ def verify(user_input: RecaptchaValues, ctx: RecaptchaContext, secret_key: str, 
     if ctx.verify_ip:
         request_data["remoteip"] = user_ip
 
+    logging.debug("Sending POST request to siteverify")
     request = requests.post("https://www.google.com/recaptcha/api/siteverify", data=request_data)
+    logging.debug("Response %s", request)
 
     # recaptcha servers are unavailable or internal error
     if request.status_code != 200:
+        logging.error("Error communicating with siteverify, status code=%s", request.status_code)
         return json_response({"error": "Recaptcha token must be of a text type"}, 503)
 
     response_data: dict = request.json()
-    print(response_data)
+    logging.debug("Siteverify response data=%s", response_data)
 
     success = response_data.get("success", False)
     if not success:
@@ -117,12 +126,15 @@ def verify(user_input: RecaptchaValues, ctx: RecaptchaContext, secret_key: str, 
 
     action = response_data.get("action", None)
     if action != "submit":
+        logging.debug("Recaptcha unsuccessful, action!=submit, action=%s", action)
         return json_response(
             {"error": "Recaptcha verification observed malformed request"}, 400)
 
     score = response_data.get("score", -1)
     if score < ctx.minimal_score:
+        logging.debug("Recaptcha unsuccessful, score is low, score=%s", score)
         return json_response(
             {"error": "Recaptcha verification observed a non human behaviour. Try again."}, 400)
 
+    logging.info("Recaptcha successful")
     return None

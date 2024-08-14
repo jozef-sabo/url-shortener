@@ -1,3 +1,4 @@
+import logging
 import string
 import tomllib
 from dataclasses import dataclass
@@ -216,8 +217,12 @@ def load_toml_conf(filename: str) -> dict:
     :param filename: name of the file to be read
     :return: byte array containing the contents of the file
     """
+    logging.debug("Opening the file '%s'", filename)
     with open(filename, "rb") as conf_file:
+        logging.debug("File '%s' opened, fd: %s", filename, conf_file.fileno())
+        logging.debug("Parsing contents of '%s' to tomllib", filename)
         conf = tomllib.load(conf_file)
+    logging.debug("Config loaded with tomllib, contents: %s", conf)
 
     return conf
 
@@ -232,8 +237,11 @@ def load_conf(filename: str) -> ConfigValues:
     :param filename: name of the file containing the config
     :return: ConfigValues object containing the config contents
     """
+    logging.debug("Going to load toml config from '%s'", filename)
     toml_conf = load_toml_conf(filename)
+    logging.debug("TOML config loaded from '%s'", filename)
     conf_obj = ConfigValues(toml_conf)
+    logging.info("Config loaded from '%s'", filename)
 
     return conf_obj
 

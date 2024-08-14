@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import Optional, Union
 
@@ -22,6 +23,8 @@ def check_requested_link(link: str, get_ctx: GetContext) -> Optional[tuple]:
         otherwise tuple containing flask response and the status code
     """
     if not isinstance(link, str) or set(link) - get_ctx.alphabet != set():
+        logging.debug("Requested link contains not allowed characters ro is not str type=%s, diff=%s", type(link),
+                      (set(link) - get_ctx.alphabet))
         return flask.render_template("404.html"), 404
 
     return None
@@ -35,10 +38,12 @@ def get_from_db(cursor, values: dict) -> tuple:
     :param values: dictionary containing values which will be parsed to a database query
     :return: tuple containing zero or one element (line) based on the result
     """
+    logging.debug("Getting data from database, link=%s", values.get("link"))
     cursor.execute(
         "SELECT url, redirect FROM get_address(%(link)s::varchar);",
         values
     )
+    logging.debug("Fetching the response")
     result = cursor.fetchone()
 
     return result
@@ -57,6 +62,7 @@ def get_request(cursor, link: str) -> Union[flask.Response, tuple]:
 
     result = get_from_db(cursor, sql_values)
     if result is None or not result:
+        logging.debug("Link not found in teh database")
         return flask.render_template("404.html"), 404
 
     url, redirect = result
