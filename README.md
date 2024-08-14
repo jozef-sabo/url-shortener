@@ -14,6 +14,8 @@ services:
   url-shortener:
     image: jefinko/url-shortener:latest
     restart: unless-stopped
+    environment:
+      PY_LOGGING: "WARNING"
     ports:
       - "8000:8000"
     volumes:
@@ -24,6 +26,14 @@ must be changed to
 ``` yaml
 - "8000:<desired port>"
 ```
+The service will be logging its workflow. 
+The default log level is set to `WARNING`. To change this, the line `PY_LOGGING: "WARNING"`
+must be changed to 
+``` yaml
+PY_LOGGING: "<desired level>"
+```
+You can find other available levels [here](https://docs.python.org/3/library/logging.html#logging-levels).  
+
 Run the service with
 ```shell
 docker compose up
