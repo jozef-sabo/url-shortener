@@ -2,6 +2,9 @@
 
 This is a really simple, compact and lightweight implementation of URL shortener using Python, [Flask](https://flask.palletsprojects.com/en/3.0.x/) and PostgreSQL database. It is packed within a Docker container using [uWSGI server](https://uwsgi-docs.readthedocs.io/en/latest/) which makes it easy to use and easy to deploy. The implementation can be used either as a standalone application or as a service behind the bigger server (e.g., load balancer).
 
+## Live version
+Live version of the code can be found at [go.sbo.sk](https://go.sbo.sk).
+
 ## Installation / Deployment
 There are, in general, three methods to install / deploy the service. Each of this method needs further configuration, which can be found in the section [Configuration](#Configuration)
 
