@@ -23,7 +23,7 @@ def check_requested_link(link: str, get_ctx: GetContext) -> Optional[tuple]:
         otherwise tuple containing flask response and the status code
     """
     if not isinstance(link, str) or set(link) - get_ctx.alphabet != set():
-        logging.debug("Requested link contains not allowed characters ro is not str type=%s, diff=%s", type(link),
+        logging.debug("Requested link contains not allowed characters or is not str type=%s, diff=%s", type(link),
                       (set(link) - get_ctx.alphabet))
         return flask.render_template("404.html"), 404
 
