@@ -16,6 +16,9 @@ Create [docker compose](https://www.docker.com/get-started/) file `docker-compos
 services:
   url-shortener:
     image: jefinko/url-shortener:latest
+    build:
+        context: .
+        target: production
     restart: unless-stopped
     environment:
       PY_LOGGING: "WARNING"
