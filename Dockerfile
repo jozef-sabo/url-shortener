@@ -1,25 +1,30 @@
-FROM alpine:latest
+FROM python:3.12-alpine AS base
+LABEL authors="Jozef Sabo"
 
-RUN apk add --update --no-cache wget gcc cmake make readline-dev ncurses-dev openssl-dev tk-dev gdbm-dev libc-dev bzip2-dev libffi-dev zlib-dev libpq-dev
-
-RUN wget -c https://www.python.org/ftp/python/3.12.8/Python-3.12.8.tar.xz \
-    && tar -Jxvf Python-3.12.8.tar.xz \
-    && cd Python-3.12.8 \
-    && ./configure --enable-optimizations --prefix=/usr/local LDFLAGS="-Wl,-rpath /usr/local/lib" \
-    && make -j4 && make install \
-    && cd .. \
-    && rm -rf ./Python-3.12.8 \
-    && rm -f ./Python-3.12.8.tar.xz \
-    && python3 --version
+RUN apk add --no-cache \
+        libpq-dev
 
 WORKDIR /url-shortener
 
+FROM base AS dependencies-builder
+
+RUN apk add --no-cache \
+        build-base \
+        linux-headers
+
+RUN python -m venv /venv
+ENV PATH="/venv/bin:$PATH"
+
+RUN pip install uwsgi
+
 COPY requirements.txt /url-shortener/
 
-RUN python3 -m ensurepip  \
-    && pip3 install --no-cache -r requirements.txt
+RUN pip install --no-cache -r requirements.txt
 
-RUN pip3 install uwsgi
+FROM base AS production
+
+COPY --from=dependencies-builder /venv /venv
+ENV PATH="/venv/bin:$PATH"
 
 EXPOSE 8000
 
